@@ -23,13 +23,14 @@ class FileLoading(threading.Thread):
                 time.sleep(1)
                 continue
 
-            filepath = self._filepaths.pop(0)
+            filepath = self._filepaths[0]
             self._lock.release()
 
             try:
                 data = torch.load(filepath)
                 self._lock.acquire()
                 self._datalist.append(data)
+                del self._filepaths[0]
                 self._lock.release()
             except Exception as e:
                 print(e)
@@ -68,10 +69,11 @@ if __name__ == '__main__':
     fl.start()
 
     while True:
+        curtime = time.time()
         data = fl.get()
         if data is None:
             break
-        print(id(data))
+        print(id(data), "waiting:", time.time() - curtime)
 
     fl.join()
 
